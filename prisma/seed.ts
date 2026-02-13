@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -17,13 +16,16 @@ async function main() {
     { name: "Other", icon: "📦", color: "#6B7280" },
   ];
 
-  await prisma.$executeRaw`DELETE FROM "Category" WHERE "userId" IS NULL`;
+  await prisma.category.deleteMany({ where: { userId: null } });
 
   for (const cat of defaultCategories) {
-    await prisma.$executeRaw`
-      INSERT INTO "Category" ("id", "name", "icon", "color")
-      VALUES (gen_random_uuid(), ${cat.name}, ${cat.icon}, ${cat.color})
-    `;
+    await prisma.category.create({
+      data: {
+        name: cat.name,
+        icon: cat.icon,
+        color: cat.color,
+      },
+    });
   }
 
   console.log("✅ Seed data created!");
