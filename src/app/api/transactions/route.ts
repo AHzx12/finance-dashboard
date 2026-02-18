@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
 // POST /api/transactions — 创建新交易
 export async function POST(request: NextRequest) {
   try {
+    
     const body = await request.json();
     const { amount, type, description, date, categoryId, userId } = body;
 
