@@ -70,9 +70,9 @@ export const authOptions: NextAuthOptions = {
     },
   },
 
-//   pages: {
-//     signIn: "/login", // 自定义登录页面路径
-//   },
+  pages: {
+    signIn: "/login", // 自定义登录页面路径
+  },
 
   secret: process.env.NEXTAUTH_SECRET,
 };
