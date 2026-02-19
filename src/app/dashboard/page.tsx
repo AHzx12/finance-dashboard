@@ -85,8 +85,6 @@ export default function DashboardPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userId = (session?.user as any)?.id;
-    if (!userId) return;
 
     try {
       const res = await fetch("/api/transactions", {
@@ -95,7 +93,6 @@ export default function DashboardPage() {
         body: JSON.stringify({
           ...form,
           amount: parseFloat(form.amount),
-          userId,
         }),
       });
 

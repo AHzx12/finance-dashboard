@@ -1,22 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/get_session";
 
-// GET /api/transactions — 获取交易记录
-export async function GET(request: NextRequest) {
+// GET /api/transactions
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get("type"); // "income" 或 "expense"
-    const categoryId = searchParams.get("categoryId");
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // 构建查询条件
-    const where: any = {};
-    if (type) where.type = type;
-    if (categoryId) where.categoryId = categoryId;
+    const userId = (session.user as any).id;
 
     const transactions = await prisma.transaction.findMany({
-      where,
-      include: { category: true }, // 同时返回分类信息
-      orderBy: { date: "desc" },   // 最新的排前面
+      where: { userId },
+      include: { category: true },
+      orderBy: { date: "desc" },
     });
 
     return NextResponse.json(transactions);
@@ -29,22 +28,25 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/transactions — 创建新交易
+// POST /api/transactions
 export async function POST(request: NextRequest) {
   try {
-    
-    const body = await request.json();
-    const { amount, type, description, date, categoryId, userId } = body;
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // 验证必填字段
-    if (!amount || !type || !categoryId || !userId) {
+    const userId = (session.user as any).id;
+    const body = await request.json();
+    const { amount, type, description, date, categoryId } = body;
+
+    if (!amount || !type || !categoryId) {
       return NextResponse.json(
-        { error: "amount, type, categoryId, and userId are required" },
+        { error: "amount, type, and categoryId are required" },
         { status: 400 }
       );
     }
 
-    // 验证 type 只能是 income 或 expense
     if (type !== "income" && type !== "expense") {
       return NextResponse.json(
         { error: "type must be 'income' or 'expense'" },
@@ -52,7 +54,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证金额必须大于 0
     if (amount <= 0) {
       return NextResponse.json(
         { error: "amount must be greater than 0" },
