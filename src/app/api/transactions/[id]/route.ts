@@ -5,9 +5,10 @@ import { getSession } from "@/lib/get_session";
 // GET /api/transactions/:id
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -16,7 +17,7 @@ export async function GET(
     const userId = (session.user as any).id;
 
     const transaction = await prisma.transaction.findFirst({
-      where: { id: params.id, userId },
+      where: { id, userId },
       include: { category: true },
     });
 
@@ -40,9 +41,10 @@ export async function GET(
 // PUT /api/transactions/:id
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -52,7 +54,7 @@ export async function PUT(
 
     // 确保只能改自己的交易
     const existing = await prisma.transaction.findFirst({
-      where: { id: params.id, userId },
+      where: { id, userId },
     });
 
     if (!existing) {
@@ -80,7 +82,7 @@ export async function PUT(
     }
 
     const transaction = await prisma.transaction.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(amount !== undefined && { amount: parseFloat(amount) }),
         ...(type && { type }),
@@ -104,9 +106,10 @@ export async function PUT(
 // DELETE /api/transactions/:id
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getSession();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -115,7 +118,7 @@ export async function DELETE(
     const userId = (session.user as any).id;
 
     const existing = await prisma.transaction.findFirst({
-      where: { id: params.id, userId },
+      where: { id, userId },
     });
 
     if (!existing) {
@@ -126,7 +129,7 @@ export async function DELETE(
     }
 
     await prisma.transaction.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "Transaction deleted" });
