@@ -6,6 +6,8 @@ import { useState, useEffect, useCallback } from "react";
 import { signOut } from "next-auth/react";
 import CategoryPieChart from "@/components/charts/CategoryPieChart";
 import MonthlyBarChart from "@/components/charts/MonthlyBarChart";
+import AiAdvisor from "@/components/AiAdvisor";
+import AiRecommend from "@/components/AiRecommend";
 
 type Category = {
   id: string;
@@ -182,6 +184,12 @@ export default function DashboardPage() {
             <h2 className="text-lg font-semibold mb-4">Monthly Overview</h2>
             <MonthlyBarChart data={stats?.byMonth ?? []} />
           </div>
+        </div>
+
+        {/* AI 功能区 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <AiAdvisor />
+          <AiRecommend />
         </div>
 
         {/* 添加交易 + 交易列表 */}
