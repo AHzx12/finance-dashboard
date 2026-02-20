@@ -6,7 +6,7 @@ type ShopLink = {
   name: string;
   url: string;
   color: string;
-  icon: string;
+  primary?: boolean;
 };
 
 type Product = {
@@ -19,6 +19,7 @@ type Product = {
   badge: string;
   links: ShopLink[];
   source?: string;
+  directUrl?: string;
 };
 
 function StarRating({ rating }: { rating: number }) {
@@ -53,14 +54,11 @@ function BadgeColor(badge: string) {
   return "bg-gradient-to-r from-blue-500 to-indigo-500 text-white";
 }
 
-function ProductCard({
-  product,
-  index,
-}: {
-  product: Product;
-  index: number;
-}) {
+function ProductCard({ product, index }: { product: Product; index: number }) {
   const [expanded, setExpanded] = useState(false);
+
+  const primaryLink = product.links.find((l) => l.primary);
+  const otherLinks = product.links.filter((l) => !l.primary);
 
   return (
     <div
@@ -78,9 +76,8 @@ function ProductCard({
         </span>
       </div>
 
-      {/* Content */}
       <div className="p-5">
-        {/* Product header */}
+        {/* Header */}
         <div className="pr-24 mb-3">
           <h3 className="font-bold text-gray-900 text-base leading-tight mb-1">
             {product.name}
@@ -88,20 +85,29 @@ function ProductCard({
           <StarRating rating={product.rating} />
         </div>
 
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mb-1">
-          <span className="text-3xl font-extrabold text-gray-900">
-            ${Math.floor(product.price)}
-          </span>
-          <span className="text-lg font-semibold text-gray-400">
-            .{((product.price % 1) * 100).toFixed(0).padStart(2, "0")}
-          </span>
+        {/* Price + Source */}
+        <div className="mb-3">
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-extrabold text-gray-900">
+              ${Math.floor(product.price)}
+            </span>
+            <span className="text-lg font-semibold text-gray-400">
+              .{((product.price % 1) * 100).toFixed(0).padStart(2, "0")}
+            </span>
+          </div>
+          {product.source && (
+            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Live price from {product.source}
+            </p>
+          )}
         </div>
-        {product.source && (
-          <p className="text-xs text-green-600 mb-3">
-            ✓ Price found on {product.source}
-          </p>
-        )}
 
         {/* Summary */}
         <p className="text-sm text-gray-600 mb-4 leading-relaxed">
@@ -111,22 +117,15 @@ function ProductCard({
         {/* Expandable pros/cons */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-xs text-gray-400 hover:text-gray-600 transition mb-3 flex items-center gap-1"
+          className="text-xs text-gray-400 hover:text-gray-600 transition mb-4 flex items-center gap-1"
         >
           <svg
-            className={`w-3 h-3 transition-transform ${
-              expanded ? "rotate-180" : ""
-            }`}
+            className={`w-3 h-3 transition-transform ${expanded ? "rotate-180" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
           {expanded ? "Hide details" : "Show pros & cons"}
         </button>
@@ -134,49 +133,46 @@ function ProductCard({
         {expanded && (
           <div className="space-y-2 mb-4">
             <div>
-              <p className="text-xs font-semibold text-emerald-600 mb-1">
-                ✓ Pros
-              </p>
+              <p className="text-xs font-semibold text-emerald-600 mb-1">✓ Pros</p>
               {product.pros.map((pro, i) => (
-                <p key={i} className="text-xs text-gray-600 pl-3 py-0.5">
-                  • {pro}
-                </p>
+                <p key={i} className="text-xs text-gray-600 pl-3 py-0.5">• {pro}</p>
               ))}
             </div>
             <div>
-              <p className="text-xs font-semibold text-red-500 mb-1">
-                ✗ Cons
-              </p>
+              <p className="text-xs font-semibold text-red-500 mb-1">✗ Cons</p>
               {product.cons.map((con, i) => (
-                <p key={i} className="text-xs text-gray-600 pl-3 py-0.5">
-                  • {con}
-                </p>
+                <p key={i} className="text-xs text-gray-600 pl-3 py-0.5">• {con}</p>
               ))}
             </div>
           </div>
         )}
 
-        {/* Price disclaimer */}
-        <div className="flex items-center gap-1 mb-3">
-          <svg className="w-3 h-3 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          <span className="text-xs text-amber-600">
-            {product.source ? "Price may vary — compare across retailers" : "Estimated price — click below for real-time pricing"}
-          </span>
-        </div>
+        {/* Primary buy button */}
+        {primaryLink && (
+          <a
+            href={primaryLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-lg mb-3 text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+            </svg>
+            Buy Now on {product.source} — ${product.price.toFixed(2)}
+          </a>
+        )}
 
-        {/* Shop links */}
+        {/* Other retailers */}
         <div className="pt-3 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-500 mb-2">Compare prices on:</p>
-          <div className="grid grid-cols-3 gap-2">
-            {product.links.map((link, i) => (
+          <p className="text-xs font-semibold text-gray-500 mb-2">Also compare on:</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {otherLinks.slice(0, 6).map((link, i) => (
               <a
                 key={i}
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center py-2 px-2 rounded-lg text-white text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105"
+                className="flex items-center justify-center py-1.5 px-2 rounded-lg text-white text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105"
                 style={{ backgroundColor: link.color }}
               >
                 {link.name}
@@ -248,16 +244,12 @@ export default function AiRecommend() {
           🛍️
         </div>
         <div>
-          <h2 className="text-lg font-bold text-gray-900">
-            AI Shopping Advisor
-          </h2>
-          <p className="text-xs text-gray-400">
-            Smart recommendations within your budget
-          </p>
+          <h2 className="text-lg font-bold text-gray-900">AI Shopping Advisor</h2>
+          <p className="text-xs text-gray-400">Real-time prices with direct buy links</p>
         </div>
       </div>
 
-      {/* Search Form */}
+      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-3 mb-5">
         <div className="relative">
           <svg
@@ -266,12 +258,7 @@ export default function AiRecommend() {
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
@@ -285,9 +272,7 @@ export default function AiRecommend() {
 
         <div className="flex gap-3">
           <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-              $
-            </span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input
               type="number"
               step="0.01"
@@ -300,9 +285,7 @@ export default function AiRecommend() {
           </div>
           <div className="flex items-center text-gray-300 text-sm">to</div>
           <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-              $
-            </span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
             <input
               type="number"
               step="0.01"
@@ -323,26 +306,11 @@ export default function AiRecommend() {
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
-              <svg
-                className="animate-spin h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                />
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Finding best deals...
+              Searching real-time prices...
             </span>
           ) : (
             "Find Recommendations"
@@ -352,19 +320,17 @@ export default function AiRecommend() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm border border-red-100">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm border border-red-100">{error}</div>
       )}
 
-      {/* Fallback text */}
+      {/* Fallback */}
       {fallbackText && !loading && (
         <div className="bg-purple-50 rounded-xl p-4 whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
           {fallbackText}
         </div>
       )}
 
-      {/* Product Cards */}
+      {/* Products */}
       {products.length > 0 && !loading && (
         <div className="space-y-4">
           <div className="space-y-3">
@@ -373,33 +339,24 @@ export default function AiRecommend() {
             ))}
           </div>
 
-          {/* Shopping Tip */}
           {shoppingTip && (
             <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
               <span className="text-lg">💡</span>
               <div>
-                <p className="text-xs font-semibold text-amber-700 mb-0.5">
-                  Shopping Tip
-                </p>
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  {shoppingTip}
-                </p>
+                <p className="text-xs font-semibold text-amber-700 mb-0.5">Shopping Tip</p>
+                <p className="text-sm text-amber-800 leading-relaxed">{shoppingTip}</p>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty */}
       {!searched && !loading && (
         <div className="text-center py-6">
           <div className="text-4xl mb-3">🔍</div>
-          <p className="text-sm text-gray-400">
-            Tell us what you want to buy and your budget
-          </p>
-          <p className="text-xs text-gray-300 mt-1">
-            AI will find the best options with direct purchase links
-          </p>
+          <p className="text-sm text-gray-400">Tell us what you want to buy and your budget</p>
+          <p className="text-xs text-gray-300 mt-1">AI searches real-time prices and finds direct buy links</p>
         </div>
       )}
     </div>
