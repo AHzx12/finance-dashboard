@@ -8,6 +8,7 @@ import CategoryPieChart from "@/components/charts/CategoryPieChart";
 import MonthlyBarChart from "@/components/charts/MonthlyBarChart";
 import AiAdvisor from "@/components/AiAdvisor";
 import AiRecommend from "@/components/AiRecommend";
+import AiChat from "@/components/AiChat";
 
 type Category = {
   id: string;
@@ -186,6 +187,9 @@ export default function DashboardPage() {
         {/* AI 功能区 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <AiAdvisor />
+          <AiChat />
+        </div>
+        <div className="mb-8">
           <AiRecommend />
         </div>
 
